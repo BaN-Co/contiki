@@ -243,9 +243,26 @@ static uint8_t tx_buf[TX_BUF_HDR_LEN + TX_BUF_PAYLOAD_LEN] CC_ALIGN(4);
 static uint8_t
 rf_is_on(void)
 {
-  if(!rf_core_is_accessible()) {
+  static bool nested_call = false; // To avoid the loop call from the on() function
+  if (nested_call)
+  {
     return 0;
   }
+  nested_call = true;
+  if(!rf_core_is_accessible()) {
+    if(NETSTACK_RDC.keep_radio_on_state()) {
+      if(on() != RF_CORE_CMD_OK) {
+        PRINTF("set_value: on() failed (3)\n");
+        nested_call = false;
+        return 0;
+      }
+      nested_call = false;
+      return smartrf_settings_cmd_prop_rx_adv.status == RF_CORE_RADIO_OP_STATUS_ACTIVE;
+    }
+    nested_call = false;
+    return 0;
+  }
+  nested_call = false;
 
   return smartrf_settings_cmd_prop_rx_adv.status == RF_CORE_RADIO_OP_STATUS_ACTIVE;
 }

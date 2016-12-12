@@ -562,6 +562,13 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
   uint8_t seqno;
 #endif
 
+  /* Check if the radio was turned off, while it should be on */
+  NETSTACK_RADIO.get_value(RADIO_PARAM_POWER_MODE, &radio_value);
+  if(contikimac_keep_radio_on && radio_value == RADIO_POWER_MODE_OFF) {
+    PRINTF("contikimac: radio was turned off, turn it on\n");
+    NETSTACK_RADIO.set_value(RADIO_PARAM_POWER_MODE, RADIO_POWER_MODE_ON);
+  }
+
   /* Exit if RDC and radio were explicitly turned off */
    if(!contikimac_is_on && !contikimac_keep_radio_on) {
     PRINTF("contikimac: radio is turned off\n");
@@ -1079,6 +1086,12 @@ duty_cycle(void)
   return (1ul * CLOCK_SECOND * CYCLE_TIME) / RTIMER_ARCH_SECOND;
 }
 /*---------------------------------------------------------------------------*/
+static unsigned char
+keep_radio_on_state(void)
+{
+  return contikimac_keep_radio_on;
+}
+/*---------------------------------------------------------------------------*/
 const struct rdc_driver contikimac_driver = {
   "ContikiMAC",
   init,
@@ -1088,6 +1101,7 @@ const struct rdc_driver contikimac_driver = {
   turn_on,
   turn_off,
   duty_cycle,
+  keep_radio_on_state,
 };
 /*---------------------------------------------------------------------------*/
 uint16_t

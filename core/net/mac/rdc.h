@@ -88,6 +88,9 @@ struct rdc_driver {
 
   /** Returns the channel check interval, expressed in clock_time_t ticks. */
   unsigned short (* channel_check_interval)(void);
+
+  /** Returns the state of the radio, if returned value is true - keep the radio in on state, if returned value is false - allow to switch the radio in off state. */
+  unsigned char (* keep_radio_on_state)(void);
 };
 
 #endif /* RDC_H_ */
