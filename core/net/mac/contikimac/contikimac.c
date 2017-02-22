@@ -689,6 +689,10 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
       off();
       t0 = RTIMER_NOW();
       while(RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + CCA_SLEEP_TIME)) { }
+      if(contikimac_keep_radio_on && NETSTACK_RADIO.pending_packet()) {
+        collisions++;
+        break;
+      }
     }
   }
 
